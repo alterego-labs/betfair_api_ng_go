@@ -17,16 +17,16 @@
 package betfair_api_ng_go
 
 import (
-	"crypto/rand"
-	"crypto/tls"
-	"encoding/json"
-	"errors"
+	// "crypto/rand"
+	// "crypto/tls"
+	// "encoding/json"
+	// "errors"
 	"fmt"
 	curl "github.com/juliuxu/go-curl"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"strings"
+	// "io/ioutil"
+	// "log"
+	// "net/http"
+	// "strings"
 )
 
 var loginUrl = "https://identitysso.betfair.com/api/certlogin"
@@ -78,5 +78,7 @@ func CreateSession(c *Config) (string, error) {
 
 		fmt.Printf("code -> %v\n", code)
 	}
+
+	return nil, nil
 
 }
