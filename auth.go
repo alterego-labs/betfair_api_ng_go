@@ -17,16 +17,10 @@
 package betfair_api_ng_go
 
 import (
-	// "crypto/rand"
-	// "crypto/tls"
-	// "encoding/json"
-	// "errors"
+	"encoding/json"
 	"fmt"
 	curl "github.com/juliuxu/go-curl"
-	// "io/ioutil"
-	// "log"
-	// "net/http"
-	// "strings"
+	"log"
 )
 
 var loginUrl = "https://identitysso.betfair.com/api/certlogin"
@@ -46,27 +40,27 @@ type certLoginResult struct {
 	SessionToken string `json:"sessionToken"`
 }
 
-func CreateSession(c *Config) (string, error) {
+func CreateSession(c *Config) (certLoginResult, error) {
 	easy := curl.EasyInit()
 	defer easy.Cleanup()
 
-	fooTest := func(buf []byte, userdata interface{}) bool {
-		println("size=>", len(buf))
-		println("DEBUG(in callback)", buf, userdata)
+	var result certLoginResult
+
+	writeResultFunc := func(buf []byte, userdata interface{}) bool {
 		println("data = >", string(buf))
+		err := json.Unmarshal(buf, &result)
+		if err != nil {
+			log.Fatal("ERROR unmarshal auth data!")
+		}
 		return true
 	}
 
-	easy.Setopt(curl.OPT_WRITEFUNCTION, fooTest)
+	easy.Setopt(curl.OPT_WRITEFUNCTION, writeResultFunc)
 
 	if easy != nil {
 		easy.Setopt(curl.OPT_URL, loginUrl)
 
 		easy.Setopt(curl.OPT_HTTPHEADER, []string{"Content-Type: application/x-www-form-urlencoded", "X-Application: " + c.ApplicationKey})
-		easy.Setopt(curl.OPT_HEADER, 1)
-
-		easy.Setopt(curl.OPT_VERBOSE, true)
-
 		easy.Setopt(curl.OPT_SSL_VERIFYHOST, 1)
 		easy.Setopt(curl.OPT_SSL_VERIFYPEER, true)
 		easy.Setopt(curl.OPT_SSLCERT, c.CertFile)
@@ -79,6 +73,6 @@ func CreateSession(c *Config) (string, error) {
 		fmt.Printf("code -> %v\n", code)
 	}
 
-	return "", nil
+	return result, nil
 
 }
