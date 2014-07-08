@@ -22,23 +22,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	curl "github.com/juliuxu/go-curl"
 	"io/ioutil"
 	"log"
-	// "net"
 	"net/http"
 	"strings"
-	// "time"
 )
 
 var loginUrl = "https://identitysso.betfair.com/api/certlogin"
 
 type Config struct {
-	Username string
-	Password string
-	CertFile string
-	KeyFile  string
-	Exchange string
-	Locale   string
+	Username       string
+	Password       string
+	CertFile       string
+	KeyFile        string
+	Exchange       string
+	Locale         string
+	ApplicationKey string
 }
 
 type certLoginResult struct {
@@ -47,70 +47,36 @@ type certLoginResult struct {
 }
 
 func CreateSession(c *Config) (string, error) {
-	body := strings.NewReader("username=" + c.Username + "&password=" + c.Password)
+	easy := curl.EasyInit()
+	defer easy.Cleanup()
 
-	data, err := doRequest("certLogin", "", body, c)
-	// log.Fatal("DATA " + data)
-	var result certLoginResult
-	err = json.Unmarshal(data, &result)
-	if err != nil {
-		log.Fatal("ERROR unmarshal!")
-		return "", err
-	}
-	if result.LoginStatus != "SUCCESS" {
-		return "", errors.New(result.LoginStatus)
+	fooTest := func(buf []byte, userdata interface{}) bool {
+		println("size=>", len(buf))
+		println("DEBUG(in callback)", buf, userdata)
+		println("data = >", string(buf))
+		return true
 	}
 
-	return result.SessionToken, nil
-}
+	easy.Setopt(curl.OPT_WRITEFUNCTION, fooTest)
 
-func doRequest(key, method string, body *strings.Reader, c *Config) ([]byte, error) {
+	if easy != nil {
+		easy.Setopt(curl.OPT_URL, loginUrl)
 
-	req, err := http.NewRequest("POST", loginUrl, body)
-	if err != nil {
-		return nil, err
+		easy.Setopt(curl.OPT_HTTPHEADER, []string{"Content-Type: application/x-www-form-urlencoded", "X-Application: " + c.ApplicationKey})
+		easy.Setopt(curl.OPT_HEADER, 1)
+
+		easy.Setopt(curl.OPT_VERBOSE, true)
+
+		easy.Setopt(curl.OPT_SSL_VERIFYHOST, 1)
+		easy.Setopt(curl.OPT_SSL_VERIFYPEER, true)
+		easy.Setopt(curl.OPT_SSLCERT, c.CertFile)
+		easy.Setopt(curl.OPT_SSLKEY, c.KeyFile)
+		easy.Setopt(curl.OPT_POST, 1)
+		easy.Setopt(curl.OPT_POSTFIELDS, "username="+c.Username+"&password="+c.Password)
+
+		code := easy.Perform()
+
+		fmt.Printf("code -> %v\n", code)
 	}
 
-	req.Header.Set("Accept", "application/json")
-
-	if key == "certLogin" {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		// In non-interactive login, X-Application is not validated
-		req.Header.Set("X-Application", "5kaGlzvjvo8HeaNo")
-	}
-
-	res, err := httpClient(c).Do(req)
-	if err != nil {
-		fmt.Printf("%s\n", err)
-		log.Fatal("ERROR do!")
-		return nil, err
-	}
-	if res.StatusCode != 200 {
-		log.Fatal("ERROR with status code!")
-		return nil, errors.New(res.Status)
-	}
-	defer res.Body.Close()
-	data, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal("ERROR readall!")
-		return nil, err
-	}
-
-	return data, nil
-}
-
-func httpClient(c *Config) (httpClient *http.Client) {
-	cert, _ := tls.LoadX509KeyPair(c.CertFile, c.KeyFile)
-
-	ssl := &tls.Config{
-		Certificates:       []tls.Certificate{cert},
-		InsecureSkipVerify: true,
-	}
-
-	ssl.Rand = rand.Reader
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: ssl,
-		},
-	}
 }
