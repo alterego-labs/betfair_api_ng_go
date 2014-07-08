@@ -79,6 +79,6 @@ func CreateSession(c *Config) (string, error) {
 		fmt.Printf("code -> %v\n", code)
 	}
 
-	return nil, nil
+	return "", nil
 
 }
