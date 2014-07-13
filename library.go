@@ -25,6 +25,8 @@ import (
 
 var loginUrl = "https://identitysso.betfair.com/api/certlogin"
 
+var apiUrl = "https://api-ng.betstores.com/betting/betfair/services/api.betfair.com/exchange/betting/json-rpc/v1"
+
 type Config struct {
 	Username       string
 	Password       string
@@ -74,5 +76,38 @@ func CreateSession(c *Config) (certLoginResult, error) {
 	}
 
 	return result, nil
+}
 
+func ApiRequest(app_key, session_key, req_data string) string {
+	easy := curl.EasyInit()
+	defer easy.Cleanup()
+
+	var result string
+
+	writeResultFunc := func(buf []byte, userdata interface{}) bool {
+		println("data = >", string(buf))
+		result = string(buf)
+		return true
+	}
+
+	easy.Setopt(curl.OPT_WRITEFUNCTION, writeResultFunc)
+
+	if easy != nil {
+		easy.Setopt(curl.OPT_URL, apiUrl)
+
+		easy.Setopt(curl.OPT_HTTPHEADER, []string{
+			"Content-Type: application/json",
+			"Accept: application/json",
+			"X-Application: " + app_key,
+			"X-Authentication: " + session_key,
+		})
+		easy.Setopt(curl.OPT_POST, 1)
+		easy.Setopt(curl.OPT_POSTFIELDS, req_data)
+
+		code := easy.Perform()
+
+		fmt.Printf("code -> %v\n", code)
+	}
+
+	return result, nil
 }
