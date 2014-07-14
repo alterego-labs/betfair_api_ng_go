@@ -109,5 +109,5 @@ func ApiRequest(app_key, session_key, req_data string) string {
 		fmt.Printf("code -> %v\n", code)
 	}
 
-	return result, nil
+	return result
 }
