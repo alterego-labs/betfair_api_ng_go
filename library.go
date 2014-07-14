@@ -19,7 +19,7 @@ package betfair_api_ng_go
 import (
 	"encoding/json"
 	"fmt"
-	curl "github.com/juliuxu/go-curl"
+	curl "github.com/andelf/go-curl"
 	"log"
 )
 
