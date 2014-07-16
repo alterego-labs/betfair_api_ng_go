@@ -82,11 +82,11 @@ func ApiRequest(app_key, session_key, req_data string) string {
 	easy := curl.EasyInit()
 	defer easy.Cleanup()
 
-	var result string
+	var result string = ""
 
 	writeResultFunc := func(buf []byte, userdata interface{}) bool {
 		println("data = >", string(buf))
-		result = string(buf)
+		result += string(buf)
 		return true
 	}
 
