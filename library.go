@@ -25,7 +25,7 @@ import (
 
 var loginUrl = "https://identitysso.betfair.com/api/certlogin"
 
-var apiUrl = "https://api-ng.betstores.com/betting/betfair/services/api.betfair.com/exchange/betting/json-rpc/v1"
+var apiUrl = "https://developer.betfair.com/api.betfair.com/exchange/betting/json-rpc/v1"
 
 type Config struct {
 	Username       string
