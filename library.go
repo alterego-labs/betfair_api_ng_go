@@ -95,6 +95,8 @@ func ApiRequest(app_key, session_key, req_data string) string {
 	if easy != nil {
 		easy.Setopt(curl.OPT_URL, apiUrl)
 
+		fmt.Printf("request to -> %v\n", apiUrl)
+
 		easy.Setopt(curl.OPT_HTTPHEADER, []string{
 			"Content-Type: application/json",
 			"Accept: application/json",
